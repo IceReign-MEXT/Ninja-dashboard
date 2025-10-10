@@ -1,0 +1,3 @@
+echo 'requests
+python-dotenv
+' > requirements.txt
