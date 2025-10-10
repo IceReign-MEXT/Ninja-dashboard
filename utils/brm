@@ -1,0 +1,59 @@
+nano ~/ICEGODS/utils/bo
+t.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+from dotenv import load_dotenv
+import telebot
+
+# =============================
+# .env laden
+# ============================
+load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WALLET_ADDRESS = os.getenv("ETH_WALLET") # ETH-Wallet als Zahlungsmittel verwenden
+
+wenn nicht BOT_TOKEN oder nicht WALLET_ADDRESS:
+print("❌ BOT_TOKEN oder WALLET_ADDRESS nicht geladen. Überprüfe deine .env-Datei.")
+exit()
+
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# ============================
+# Bot-Befehle
+# ============================
+@bot.message_handler(commands=['start']) def 
+send_welcome(message): welcome_text = ( "👋 Willkommen beim 
+ICEGODS Bot!\n" "Befehle:\n" "/start - Hauptmenü\n" "/profile - 
+Dein Profil\n" "/bots - Bots verwalten\n" "/buy - Abonnement 
+kaufen\n" "/free - Kostenlose Testversion\n" "/help - 
+Hilfeinformationen\n\n" "Abonnement auswählen:\n" "1️⃣ Monatlich: 
+10 $\n" "2️⃣ Jährlich: 80 $\n\n" f"💰 Zahlung an diese Wallet 
+senden: {WALLET_ADDRESS}\n" "Zahlungen über ETH oder SOL." ) 
+bot.send_message(message.chat.id, welcome_text) 
+@bot.message_handler(commands=['profile']) def 
+show_profile(message): profile_text = ( f"👤 
+Profilinformationen:\n" f"Name: {os.getenv('MAIN_ADMIN_NAME', 
+'N/A')}\n" f"Benutzername: {os.getenv('MAIN_ADMIN_USERNAME', 
+'N/A')}\n" f"Aktive Abonnements: 0\n" f"Registrierungsdatum: 
+08.10.2025" ) bot.send_message(message.chat.id, profile_text) 
+@bot.message_handler(commands=['buy']) def 
+buy_subscription(message): buy_text = ( "🛒 
+Abonnementoptionen:\n" "1️⃣ Monatlich: 10 $\n" "2️⃣ Jährlich: 80 
+$\n\n" f"💰 Zahlung an dieses Wallet senden: 
+{WALLET_ADDRESS}\n" "Nach der Zahlung wird Ihr Abonnement 
+aktiviert." ) bot.send_message(message.chat.id, buy_text) 
+@bot.message_handler(commands=['free']) def 
+free_trial(message): bot.send_message(message.chat.id, "🆓 Sie 
+haben eine kostenlose Testversion für ICEGODS gestartet Bot!") 
+@bot.message_handler(commands=['help']) def help_info(message): 
+help_text = ( "ℹ️ Hilfe & Info:\n" "Verwende die folgenden 
+Befehle, um mit dem Bot zu interagieren:\n" "/start - 
+Hauptmenü\n" "/profile - Profilinformationen anzeigen\n" "/bots 
+- Bots verwalten\n" "/buy - Abonnement kaufen\n" "/free - 
+Kostenlose Testversion\n" "/help - Hilfeinformationen" ) 
+bot.send_message(message.chat.id, help_text) print("✅ ICEGODS 
+Bot läuft!")
+bot.infinity_polling() 

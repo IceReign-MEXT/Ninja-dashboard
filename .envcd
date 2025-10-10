@@ -1,0 +1,7 @@
+python icegods_ai_hub.py
+python utils/bot.py
+# Install Termux:Boot from Play Store
+# Create a script in ~/bin/start_bot.sh
+#!/bin/bash
+cd ~/ICEGODS
+python3 utils/bot.py
