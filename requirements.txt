@@ -3,8 +3,6 @@ flask==3.0.3
 gunicorn==22.0.0
 httpx==0.27.2
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
 web3==6.20.1
-sqlalchemy==2.0.35
 solana==0.34.3
-psutil==6.0.0
+solders==0.21.0
