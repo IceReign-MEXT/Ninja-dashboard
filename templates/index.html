@@ -1,65 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <title>V50 GOD-PROTOCOL DASHBOARD</title>
-    <style>
-        body { font-family: 'Orbitron', sans-serif; background: radial-gradient(circle at center, #001a1a 0%, #000000 100%); color: #00f2ff; }
-        .glass { background: rgba(0, 242, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(0, 242, 255, 0.2); }
-        .glow { text-shadow: 0 0 10px #00f2ff; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <title>ICE GODS V50 SAAS</title>
 </head>
-<body class="p-8">
-    <header class="flex justify-between items-center mb-12 border-b border-cyan-900 pb-6">
-        <div>
-            <h1 class="text-4xl font-bold glow">🧊 ICE GODS V50</h1>
-            <p class="text-xs text-cyan-700">SUPREME TACTICAL OVERLAY</p>
-        </div>
-        <div class="text-right">
-            <p class="text-green-500 animate-pulse">● SYSTEM: OPTIMAL</p>
-            <p class="text-xs">LATENCY: 14MS</p>
-        </div>
-    </header>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <div class="glass p-6 rounded-lg">
-            <h3 class="text-xs text-gray-500 mb-2">SOL REVENUE</h3>
-            <p class="text-3xl font-bold text-white">{{ stats.revenue_sol }} SOL</p>
-        </div>
-        <div class="glass p-6 rounded-lg">
-            <h3 class="text-xs text-gray-500 mb-2">ETH REVENUE</h3>
-            <p class="text-3xl font-bold text-white">{{ stats.revenue_eth }} ETH</p>
-        </div>
-        <div class="glass p-6 rounded-lg">
-            <h3 class="text-xs text-gray-500 mb-2">BOOSTED VOLUME</h3>
-            <p class="text-3xl font-bold text-green-400">{{ stats.volume_boosted }}</p>
-        </div>
-        <div class="glass p-6 rounded-lg">
-            <h3 class="text-xs text-gray-500 mb-2">BYPASS LOGIC</h3>
-            <p class="text-3xl font-bold text-blue-400">ACTIVE</p>
+<body class="bg-black text-cyan-400 font-mono p-10">
+    <div class="flex justify-between items-center mb-10 border-b border-cyan-900 pb-5">
+        <h1 style="font-family: 'Orbitron';" class="text-4xl text-white shadow-cyan-500">V50 GOD-PROTOCOL</h1>
+        <div class="text-right text-xs">
+            <p class="text-green-400">● SYSTEM ARMED</p>
+            <p>REVENUE STREAMS: ACTIVE</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="glass p-6 rounded-lg h-80 overflow-hidden">
-            <h2 class="text-xl mb-4 border-b border-cyan-900 pb-2">📰 ALIEN BRAIN NEWSROOM</h2>
-            <div class="text-sm space-y-3 opacity-60">
-                <p><span class="text-cyan-400">[09:41]</span> Pump.fun Liquidity Migrating to Raydium...</p>
-                <p><span class="text-cyan-400">[09:43]</span> Whale Wallet 8dtu... buying  at support...</p>
-                <p><span class="text-cyan-400">[09:45]</span> New Smart Contract Vulnerability detected in Token Root...</p>
-                <p class="animate-pulse text-cyan-300">>> LISTENING FOR NEXT GREEN CANDLE...</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="border border-cyan-500 p-6 rounded bg-zinc-900 shadow-lg">
+            <h3 class="text-xs text-gray-500">SOL REVENUE</h3>
+            <p class="text-3xl font-bold">{{ stats.sol_revenue }}</p>
+        </div>
+        <div class="border border-cyan-500 p-6 rounded bg-zinc-900 shadow-lg">
+            <h3 class="text-xs text-gray-500">ETH REVENUE</h3>
+            <p class="text-3xl font-bold">{{ stats.eth_revenue }}</p>
+        </div>
+        <div class="border border-cyan-500 p-6 rounded bg-zinc-900">
+            <h3 class="text-xs text-gray-500">HOSTED BOTS</h3>
+            <p class="text-3xl font-bold">{{ stats.active_hosting }}</p>
+        </div>
+        <div class="border border-cyan-500 p-6 rounded bg-zinc-900">
+            <h3 class="text-xs text-gray-500">STATUS</h3>
+            <p class="text-xl text-green-400 font-bold">{{ stats.status }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div class="border border-cyan-900 p-8 rounded bg-black">
+            <h2 class="text-xl mb-6 text-cyan-600">📡 LIVE TACTICAL NEWSPAPER</h2>
+            <div class="text-sm space-y-4 opacity-70">
+                <p>[NEWS] {{ stats.newspaper }}</p>
+                <p>[SYSTEM] Alien Brain scanning Pump.fun Injection root...</p>
+                <p>[REVENUE] 1% Silent Fee Loop detected trade on Jupiter.</p>
             </div>
         </div>
-        <div class="glass p-6 rounded-lg">
-            <h2 class="text-xl mb-4 border-b border-cyan-900 pb-2">🛡️ BYPASS PROTOCOLS</h2>
-            <ul class="text-sm space-y-4">
-                <li class="flex justify-between"><span>Mint Bypass</span><span class="text-green-500">READY</span></li>
-                <li class="flex justify-between"><span>Freeze Bypass</span><span class="text-green-500">READY</span></li>
-                <li class="flex justify-between"><span>LP Lock Override</span><span class="text-green-500">READY</span></li>
-                <li class="flex justify-between"><span>Silent Revenue Loop</span><span class="text-cyan-400">RUNNING</span></li>
-            </ul>
+        <div class="border border-cyan-500 p-8 rounded bg-zinc-900">
+            <h2 class="text-xl mb-6">🛰️ DEPLOY NEW BOT</h2>
+            <form action="/deploy" method="POST" class="space-y-4">
+                <input name="token" placeholder="Bot Token" class="w-full bg-black border border-cyan-900 p-3 rounded">
+                <button class="w-full bg-cyan-500 text-black py-3 rounded font-bold">ACTIVATE HOSTING (0.5 SOL)</button>
+            </form>
         </div>
     </div>
 </body>

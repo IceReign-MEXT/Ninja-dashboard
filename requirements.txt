@@ -7,3 +7,4 @@ psycopg2-binary==2.9.9
 web3==6.20.1
 sqlalchemy==2.0.35
 solana==0.34.3
+psutil==6.0.0
