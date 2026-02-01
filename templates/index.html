@@ -3,27 +3,53 @@
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-    <title>V60 GOD-PROTOCOL</title>
+    <title>V60 SUPREME COMMAND</title>
+    <style>
+        body { font-family: 'Orbitron', sans-serif; background: #000; color: #00f2ff; }
+        .glass { background: rgba(0, 242, 255, 0.05); border: 1px solid #00f2ff; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        .glow-green { color: #4ade80; text-shadow: 0 0 10px #4ade80; }
+    </style>
 </head>
-<body class="bg-black text-cyan-400 p-10 font-mono">
-    <h1 style="font-family:'Orbitron'" class="text-4xl mb-10 border-b border-cyan-900 pb-5 text-white">V60 SUPREME COMMAND</h1>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div class="border border-cyan-500 p-6 rounded bg-zinc-900">
-            <h3 class="text-xs text-gray-500">REVENUE (2% LOOP)</h3>
+<body class="p-10">
+    <div class="flex justify-between items-center mb-10 border-b border-cyan-900 pb-5">
+        <h1 class="text-4xl text-white">V60 GOD-PROTOCOL</h1>
+        <div class="text-right text-green-400 animate-pulse">● SYSTEM ARMED</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="glass p-6 rounded">
+            <h3 class="text-xs text-gray-500">SOL REVENUE (2% LOOP)</h3>
             <p class="text-3xl font-bold">{{ stats.sol }}</p>
         </div>
-        <div class="border border-green-500 p-6 rounded bg-zinc-900">
-            <h3 class="text-xs text-gray-500">BOOSTED VOLUME</h3>
-            <p class="text-3xl font-bold text-green-400">{{ stats.volume }}</p>
+        <div class="glass p-6 rounded text-green-400">
+            <h3 class="text-xs text-gray-500">INJECTED VOLUME</h3>
+            <p class="text-3xl font-bold">{{ stats.volume }}</p>
         </div>
-        <div class="border border-yellow-500 p-6 rounded bg-zinc-900">
-            <h3 class="text-xs text-gray-500">TRENDING RANK</h3>
-            <p class="text-3xl font-bold text-yellow-500">#{{ stats.rank }}</p>
+        <div class="glass p-6 rounded">
+            <h3 class="text-xs text-gray-500">DEX TRENDING</h3>
+            <p class="text-3xl font-bold text-yellow-500">RANK #{{ stats.rank }}</p>
+        </div>
+        <div class="glass p-6 rounded">
+            <h3 class="text-xs text-gray-500">MM GHOST WALLETS</h3>
+            <p class="text-3xl font-bold">{{ stats.wallets }}</p>
         </div>
     </div>
-    <div class="border border-cyan-900 p-8 rounded bg-black h-48 overflow-hidden">
-        <h2 class="text-xl mb-4 text-cyan-600">📡 TACTICAL NEWSPAPER FEED</h2>
-        <p class="text-sm opacity-60 animate-pulse">>> MONITORING WHALE MINT ROOTS | REVENUE FLOWING...</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div class="glass p-8 rounded h-64 overflow-hidden">
+            <h2 class="text-xl mb-4 border-b border-cyan-900">📡 TACTICAL NEWSPAPER FEED</h2>
+            <div class="text-sm space-y-2 opacity-60">
+                <p>[REVENUE] +0.84 SOL from Silent 2% Loop</p>
+                <p>[VOLUME] Ghost Wallet #4 injected 1.2 SOL Green Candle</p>
+                <p>[BYPASS] LP Lock override: SUCCESS</p>
+                <p class="animate-pulse text-cyan-300">>> MONITORING PUMP.FUN ROOT...</p>
+            </div>
+        </div>
+        <div class="glass p-8 rounded bg-green-900/10 border-green-500">
+            <h2 class="text-xl mb-6 text-green-400">🧹 GHOST SWEEPER CONTROL</h2>
+            <p class="text-xs text-gray-400 mb-4">When boosting ends, click below to reclaim all SOL from trading wallets to your Safety Address.</p>
+            <button onclick="fetch('/api/sweep', {method:'POST'})" class="w-full bg-green-600 text-black py-4 rounded font-bold hover:bg-white transition-all">SWEEP ALL WALLETS TO TREASURY</button>
+        </div>
     </div>
 </body>
 </html>
