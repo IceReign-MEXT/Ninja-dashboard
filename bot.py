@@ -1,4 +1,4 @@
-import os, asyncio, httpx, json
+import os, asyncio, httpx, json, psycopg2
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from solders.keypair import Keypair
@@ -8,26 +8,35 @@ load_dotenv()
 
 # --- CONFIG ---
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SOL_SAFETY = os.getenv("SOL_MAIN") # Your safety wallet
-VIP_CHANNEL = os.getenv("VIP_CHANNEL_ID")
+SOL_SAFETY = os.getenv("SOL_MAIN")
+DB_URL = os.getenv("DATABASE_URL")
 HELIUS_KEY = os.getenv("HELIUS_API_KEY")
-JUP_FEE_BPS = "200" # 2% Silent Revenue
+VIP_CHANNEL = os.getenv("VIP_CHANNEL_ID")
+JUP_FEE_BPS = "200"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# --- 1. DYNAMIC WALLET GENERATOR ---
+# --- 1. DATABASE CONNECT ---
+def save_army_to_db(user_id, army_json):
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        cur.execute("INSERT INTO users (telegram_id, army_data) VALUES (%s, %s) ON CONFLICT (telegram_id) DO UPDATE SET army_data = %s", (user_id, army_json, army_json))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e: print(f"DB Error: {e}")
+
+# --- 2. DYNAMIC WALLET GENERATOR ---
 def generate_user_army():
     army = []
     for i in range(12):
         kp = Keypair()
-        army.append({
-            "pub": str(kp.pubkey()),
-            "priv": kp.to_json()
-        })
+        army.append({"pub": str(kp.pubkey()), "priv": kp.to_json()})
     return army
 
-# --- 2. PAYMENT VERIFIER ---
+# --- 3. PAYMENT VERIFIER ---
 async def verify_tx(sig):
     url = f"https://api.helius.xyz/v0/transactions/?api-key={HELIUS_KEY}"
     async with httpx.AsyncClient() as client:
@@ -41,74 +50,41 @@ async def verify_tx(sig):
             return False
         except: return False
 
-# --- 3. COMMANDS ---
+# --- 4. COMMANDS ---
 @dp.message(F.text == "/start")
 async def start_cmd(m: types.Message):
     kb = InlineKeyboardBuilder()
-    kb.button(text="🛰️ DASHBOARD", url="https://ninja-dashboard.onrender.com")
-    kb.button(text="🔥 VIP CHANNEL", url="https://t.me/ICEGODSICEDEVILS")
+    kb.button(text="🛰️ TACTICAL DASHBOARD", url="https://ninja-dashboard.onrender.com")
     kb.adjust(1)
-    
-    await m.answer(
-        "🧊 **ICE GODS V70: PUBLIC SAAS WEAPON**\n\n"
-        "Deployment Price: **0.5 SOL**\n"
-        f"Treasury: `{SOL_SAFETY}`\n\n"
-        "**INSTRUCTIONS:**\n"
-        "1. Pay 0.5 SOL to the address above.\n"
-        "2. Verify using: `/verify [TX_ID]`\n"
-        "3. Receive your unique 12-wallet army keys.",
-        parse_mode="Markdown", reply_markup=kb.as_markup()
-    )
+    await m.answer(f"🧊 **V70 SUPREME SAAS**\n\nTo deploy a 12-wallet army, pay 0.5 SOL to:\n`{SOL_SAFETY}`\n\nVerify with: `/verify [TX_ID]`", parse_mode="Markdown", reply_markup=kb.as_markup())
 
 @dp.message(F.text.startswith("/verify"))
 async def handle_verify(m: types.Message):
     sig = m.text.replace("/verify", "").strip()
-    if not sig: return await m.answer("❌ Please provide TX Signature.")
+    if not sig: return await m.answer("❌ Provide TX ID.")
     
     wait = await m.answer("🕵️ **AI-SCANNING BLOCKCHAIN...**")
     if await verify_tx(sig):
-        user_army = generate_user_army()
-        wallet_list = "\n".join([f"`{w['pub']}`" for w in user_army])
+        army = generate_user_army()
+        # SAVE TO SUPABASE (PERMANENT)
+        save_army_to_db(m.from_user.id, json.dumps(army))
         
-        with open(f"army_{m.from_user.id}.json", "w") as f:
-            json.dump(user_army, f)
-
-        await wait.edit_text(
-            "✅ **PAYMENT VERIFIED.**\n"
-            "Your 12-wallet tactical army has been provisioned.\n\n"
-            "🛡️ **YOUR DEPLOYMENT WALLETS:**\n"
-            f"{wallet_list}\n\n"
-            "**FINAL STEPS:**\n"
-            "1. Fund each wallet with 0.1 SOL gas.\n"
-            "2. Send the **Token CA** to start injections.",
-            parse_mode="Markdown"
-        )
-        await bot.send_message(VIP_CHANNEL, f"💰 **NEW SAAS DEPLOYMENT:** 0.5 SOL received! A new trader has armed their army. 🔥")
+        wallet_list = "\n".join([f"`{w['pub']}`" for w in army])
+        await wait.edit_text(f"✅ **PAYMENT VERIFIED.**\n\n🛡️ **YOUR UNIQUE ARMY:**\n{wallet_list}\n\n fund each with 0.1 SOL and send Token CA to start.", parse_mode="Markdown")
+        await bot.send_message(VIP_CHANNEL, f"💰 **NEW SAAS DEPLOYMENT:** 0.5 SOL received from @{m.from_user.username or m.from_user.id}")
     else:
-        await wait.edit_text("❌ Payment not found. Ensure you sent 0.5 SOL.")
+        await wait.edit_text("❌ Payment not found.")
 
 @dp.message()
-async def target_logic(m: types.Message):
+async def scanner(m: types.Message):
     ca = m.text.strip()
     if not (32 <= len(ca) <= 44): return
-    
-    swap_link = f"https://jup.ag/swap/SOL-{ca}?referrer={SOL_SAFETY}&feeBps={JUP_FEE_BPS}"
-    
-    report = (
-        f"🧊 **V70 TARGET LOCKED: {ca[:6]}...**\n"
-        f"🛡️ **Status:** SECURE / BYPASS ON\n"
-        f"📈 **MM Logic:** Army Standby\n\n"
-        f"📍 `{ca}`"
-    )
-    
+    swap = f"https://jup.ag/swap/SOL-{ca}?referrer={SOL_SAFETY}&feeBps={JUP_FEE_BPS}"
     kb = InlineKeyboardBuilder()
-    kb.button(text="🚀 BUY WITH SHIELD (2%)", url=swap_link)
-    
-    await m.answer(report, parse_mode="Markdown", reply_markup=kb.as_markup())
-    await bot.send_message(VIP_CHANNEL, f"🚨 **V70 VOLUME ALERT**\n\n{report}", parse_mode="Markdown", reply_markup=kb.as_markup())
+    kb.button(text="🚀 BUY WITH SHIELD (2%)", url=swap)
+    await m.answer(f"🧊 **V70 TARGET LOCKED**\n📍 `{ca}`", parse_mode="Markdown", reply_markup=kb.as_markup())
 
 async def main():
-    print("🚀 V70 SAAS WEAPON: ONLINE")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
