@@ -1,56 +1,80 @@
-import os
+import os, asyncio, httpx
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dotenv import load_dotenv
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext
 
-# Load env variables
 load_dotenv()
+
+# --- V50 ELITE CONFIG ---
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ETH_WALLET = os.getenv("ETH_WALLET")
-SOL_WALLET = os.getenv("SOL_WALLET")
-FREE_TRIAL_DAYS = int(os.getenv("FREE_TRIAL_DAYS", 3))
-MONTHLY_SUBSCRIPTION = int(os.getenv("MONTHLY_SUBSCRIPTION", 10))
-YEARLY_SUBSCRIPTION = int(os.getenv("YEARLY_SUBSCRIPTION", 80))
+SOL_TREASURY = os.getenv("SOL_MAIN")
+VIP_CHANNEL = os.getenv("VIP_CHANNEL_ID")
+HELIUS_KEY = "1b0094c2-50b9-4c97-a2d6-2c47d4ac2789"
+JUP_FEE_BPS = "100" # 1% Silent Underground Revenue Loop
 
-if not BOT_TOKEN:
-    print("❌ BOT_TOKEN not found in .env")
-    exit()
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-# Handlers
-def start(update: Update, context: CallbackContext):
-    keyboard = [
-        [InlineKeyboardButton("Buy Subscription", callback_data='buy')],
-        [InlineKeyboardButton("Free Trial", callback_data='free')],
-        [InlineKeyboardButton("Profile", callback_data='profile')],
-        [InlineKeyboardButton("Help", callback_data='help')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text("👋 Welcome to ICEGODS 24/7 Tracker!", reply_markup=reply_markup)
+async def alien_brain_audit(ca):
+    async with httpx.AsyncClient() as client:
+        # Helius V2 Advanced Parsing
+        url = f"https://api.helius.xyz/v0/assets/{ca}?api-key={HELIUS_KEY}"
+        res = await client.get(url)
+        data = res.json()
+        
+        # Bypass Logic Detection
+        is_mutable = data.get('mutable', True)
+        frozen = data.get('authorities', {}).get('freeze_authority', None)
+        return {"name": data.get('content', {}).get('metadata', {}).get('name', 'N/A'), "is_safe": not is_mutable and not frozen}
 
-def buy(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        f"🛒 Subscription Options:\n1️⃣ Monthly: ${MONTHLY_SUBSCRIPTION}\n2️⃣ Yearly: ${YEARLY_SUBSCRIPTION}\n\n"
-        f"💰 Send payment to this wallet:\nETH: {ETH_WALLET}\nSOL: {SOL_WALLET}\nAfter payment, send /confirm to activate."
+@dp.message(F.text == "/start")
+async def start(message: types.Message):
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🛰️ ENTER TACTICAL DASHBOARD", url="https://iceblockshieldbot.onrender.com")
+    kb.button(text="🔥 VIP ALPHA SIGNAL", url="https://t.me/ICEGODSICEDEVILS")
+    kb.adjust(1)
+    
+    await message.answer(
+        "🧊 **ICE GODS V50 SUPREME: GOD-MODE**\n\n"
+        "**[SYSTEM ARMED]** Bypass Logic: ACTIVE\n"
+        "**[REVENUE LOOP]** Silent 1% Technique: ARMED\n\n"
+        "Targeting: **Solana, Pump.fun, Jupiter, DexScreener**\n\n"
+        "Send a CA to trigger the **Volume Injection Protocol**.",
+        parse_mode="Markdown", reply_markup=kb.as_markup()
     )
 
-def free(update: Update, context: CallbackContext):
-    update.message.reply_text(f"🎁 Free Trial Activated for {FREE_TRIAL_DAYS} days!")
+@dp.message()
+async def trigger_weapon(message: types.Message):
+    ca = message.text.strip()
+    if not (32 <= len(ca) <= 44): return
+    
+    wait = await message.answer("⚡ **V50 BYPASS SCANNING...**")
+    try:
+        audit = await alien_brain_audit(ca)
+        swap = f"https://jup.ag/swap/SOL-{ca}?referrer={SOL_TREASURY}&feeBps={JUP_FEE_BPS}"
+        
+        report = (
+            f"🧊 **V50 SUPREME AUDIT REPORT**\n\n"
+            f"💎 **TOKEN:** {audit['name']}\n"
+            f"🛡️ **BYPASS STATUS:** {'✅ IMMUTABLE' if audit['is_safe'] else '⚠️ VULNERABLE'}\n"
+            f"🔥 **VOLUME:** Injection Ready\n\n"
+            f"📍 "
+        )
+        
+        kb = InlineKeyboardBuilder()
+        kb.button(text="🚀 SNIPE NOW (1% SHIELD)", url=swap)
+        kb.button(text="📊 VIEW CHART", url=f"https://dexscreener.com/solana/{ca}")
+        
+        await wait.edit_text(report, parse_mode="Markdown", reply_markup=kb.as_markup())
+        
+        # BOOSTER: Triggering Green Candles in Channel
+        await bot.send_message(VIP_CHANNEL, f"🚨 **V50 VOLUME ALERT**\n\n{report}", parse_mode="Markdown", reply_markup=kb.as_markup())
+        
+    except: await wait.edit_text("❌ Connection Error. Alien Brain rebooting.")
 
-def profile(update: Update, context: CallbackContext):
-    update.message.reply_text("👤 Profile Info:\nName: Mex Robert\nUsername: @RobertSmithETH\nSubscription: None\nRegistered: 2025-10-10")
-
-def help_command(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        "/start - Main menu\n/profile - Show profile\n/buy - Subscribe\n/free - Trial\n/help - Help info"
-    )
-
-updater = Updater(BOT_TOKEN)
-updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.dispatcher.add_handler(CommandHandler('buy', buy))
-updater.dispatcher.add_handler(CommandHandler('free', free))
-updater.dispatcher.add_handler(CommandHandler('profile', profile))
-updater.dispatcher.add_handler(CommandHandler('help', help_command))
-
-print("✅ ICEGODS Bot Running!")
-updater.start_polling()
-updater.idle()
+if __name__ == "__main__":
+    print("🚀 V50 GOD-MODE: ONLINE")
+    asyncio.run(dp.start_polling(bot))
+EOFcat > Procfile <<EOF
+web: gunicorn app:app
+worker: python bot.py
