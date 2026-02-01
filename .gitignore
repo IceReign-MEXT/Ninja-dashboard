@@ -38,3 +38,4 @@ venv/
 .env
 __pycache__/
 venv/
+ghost_wallets.json
