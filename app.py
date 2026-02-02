@@ -1,28 +1,34 @@
-import os, random
+import os, psycopg2
 from flask import Flask, render_template
 from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
 
-# --- SAAS METRICS (The "Million Dollar" View) ---
-def get_saas_stats():
-    # In a full-scale war, these would pull from your Supabase DB
-    return {
-        "sol_treasury": "452.10 SOL",
-        "eth_treasury": "18.05 ETH",
-        "active_armies": random.randint(45, 60), # Number of users who paid 0.5 SOL
-        "total_volume": "$12.4M",
-        "newspaper_headline": "🐋 WHALE ALERT: 15,000 SOL move detected in Pump.fun Root."
-    }
+def get_db_stats():
+    try:
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM users")
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        return count
+    except: return 0
 
 @app.route('/')
 def index():
-    return render_template('index.html', stats=get_saas_stats())
+    user_count = get_db_stats()
+    stats = {
+        "sol": f"{245 + (user_count * 0.5)} SOL",
+        "armies": 45 + user_count,
+        "vol": "$12.4M",
+        "rank": "1"
+    }
+    return render_template('index.html', stats=stats)
 
 @app.route('/healthz')
-def health():
-    return "GOD_MODE_ACTIVE", 200
+def health(): return "ACTIVE", 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=os.getenv("PORT", 10000))
